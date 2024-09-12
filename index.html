@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pesquisa de Signos</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 20px;
+        }
+        #search-container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        #result {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+    </style>
+</head>
+<body>
+    <div id="search-container">
+        <h1>Pesquisa de Signos do Zodíaco</h1>
+        <input type="text" id="search" placeholder="Digite o nome do signo (ex: Sagitário)" onkeyup="searchSigno()">
+        <div id="result"></div>
+    </div>
+
+    <script>
+        let xmlDoc;
+
+        // Carregar o XML externo
+        async function loadXML() {
+            try {
+                const response = await fetch('signos.xml');
+                if (!response.ok) {
+                    throw new Error(`Erro ao carregar o arquivo XML: ${response.status}`);
+                }
+                const text = await response.text();
+                const parser = new DOMParser();
+                xmlDoc = parser.parseFromString(text, "text/xml");
+                console.log("Arquivo XML carregado com sucesso!");
+            } catch (error) {
+                console.error("Erro ao carregar o XML:", error);
+                document.getElementById('result').innerHTML = 'Erro ao carregar o arquivo XML.';
+            }
+        }
+
+        // Pesquisar no XML carregado
+        function searchSigno() {
+            const searchInput = document.getElementById('search').value.toLowerCase();
+            if (!xmlDoc) {
+                document.getElementById('result').innerHTML = 'O arquivo XML ainda não foi carregado.';
+                return;
+            }
+
+            const signos = xmlDoc.getElementsByTagName('signo');
+            let result = '';
+
+            for (let i = 0; i < signos.length; i++) {
+                const nome = signos[i].getElementsByTagName('nome')[0].textContent.toLowerCase();
+                const data = signos[i].getElementsByTagName('data')[0].textContent;
+                const descricao = signos[i].getElementsByTagName('descricao')[0].textContent;
+
+                if (nome.includes(searchInput)) {
+                    result = `<h2>${signos[i].getElementsByTagName('nome')[0].textContent}</h2>
+                              <p><strong>Data:</strong> ${data}</p>
+                              <p><strong>Descrição:</strong> ${descricao}</p>`;
+                    break;
+                }
+            }
+
+            document.getElementById('result').innerHTML = result || 'Signo não encontrado.';
+        }
+
+        // Chamar a função para carregar o XML ao abrir a página
+        window.onload = loadXML;
+    </script>
+</body>
+</html>
